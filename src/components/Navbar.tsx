@@ -110,16 +110,6 @@ export default function Navbar({ currentView, onNavigate, onOpenAdmin, customLog
               견적상담
             </button>
           </nav>
-
-          {/* Admin Lock Accessor with password guidance banner */}
-          <button
-            onClick={onOpenAdmin}
-            title="포트폴리오 수정 관리자 패널 로그인 (비밀번호: 202606Djr$ek)"
-            className="p-1 sm:p-1.5 rounded-full border border-neutral-200 bg-neutral-100/60 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/60 hover:border-neutral-300 hover:scale-105 transition-all cursor-pointer shadow-xs ml-1 sm:ml-2 shrink-0 flex items-center justify-center"
-            id="nav-admin-lock"
-          >
-            <Lock size={12} />
-          </button>
         </div>
 
       </div>

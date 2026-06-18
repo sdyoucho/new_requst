@@ -81,16 +81,6 @@ export default function Footer({ onOpenAdmin, onScrollToConsulting, onScrollToPo
                   <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-neutral-500" />
                 </button>
               </li>
-              <li>
-                <button 
-                  onClick={onOpenAdmin}
-                  className="hover:text-[#4B89FF] transition flex items-center space-x-1.5 group text-neutral-400 hover:translate-x-0.5 transform duration-200 cursor-pointer text-left"
-                >
-                  <Lock size={11} className="text-[#4B89FF]/85 group-hover:text-[#4B89FF] transition-colors shrink-0" />
-                  <span className="underline decoration-neutral-800 hover:decoration-[#4B89FF]/55">관리 콘솔 구동</span>
-                  <span className="text-[10px] font-mono text-neutral-600 font-bold group-hover:text-neutral-400 transition-colors">(PW: 202606Djr$ek)</span>
-                </button>
-              </li>
             </ul>
           </div>
 

@@ -357,7 +357,7 @@ export default function AdminPanel({
 
             <h3 className="text-xl font-bold mb-2">관리자 보안 인증</h3>
             <p className="text-xs text-neutral-400 mb-6 leading-relaxed">
-              모아픽의 포트폴리오 관리 및 접수된 견적 문의 DB에 권한 액세스하기 위해 비밀번호를 입력해 주세요. (비밀번호: 202606Djr$ek)
+              모아픽의 포트폴리오 관리 및 접수된 견적 문의 DB에 권한 액세스하기 위해 비밀번호를 입력해 주세요.
             </p>
 
             <form onSubmit={handleLogin} className="w-full space-y-4">

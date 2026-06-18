@@ -497,7 +497,7 @@ export default function App() {
         onScrollToPortfolio={() => handleNavigate('portfolio')}
       />
 
-      {/* Password Secured Admin Control Center Panel [Password: 202606Djr$ek] */}
+      {/* Password Secured Admin Control Center Panel */}
       <AdminPanel 
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
