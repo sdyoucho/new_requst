@@ -10,6 +10,7 @@ import {
 import { PortfolioItem, Consultation } from '../types';
 import { DEFAULT_PORTFOLIOS } from '../data/defaultPortfolios';
 import { getYouTubeId, getYouTubeThumbnailUrl } from '../utils/youtube';
+import { fetchPortfolios, replaceAllPortfolios, adminSignIn, adminSignOut, getActiveSession } from '../lib/content';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -39,8 +40,10 @@ export default function AdminPanel({
   onStatsChange
 }: AdminPanelProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Custom confirmation modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -119,21 +122,22 @@ export default function AdminPanel({
   // Load datasets
   useEffect(() => {
     if (isOpen) {
-      loadData();
+      // 이미 로그인된 세션이 있으면 자동으로 대시보드 진입
+      getActiveSession().then((session) => {
+        if (session) {
+          setIsAuthenticated(true);
+          loadData();
+        }
+      });
     }
   }, [isOpen]);
 
-  const loadData = () => {
-    // Portfolios
-    const savedP = localStorage.getItem('moapic_portfolios');
-    if (savedP) {
-      setPortfolios(JSON.parse(savedP));
-    } else {
-      setPortfolios(DEFAULT_PORTFOLIOS);
-      localStorage.setItem('moapic_portfolios', JSON.stringify(DEFAULT_PORTFOLIOS));
-    }
+  const loadData = async () => {
+    // 포트폴리오: 중앙 DB(Supabase)에서 로드
+    const items = await fetchPortfolios();
+    setPortfolios(items);
 
-    // Consultations
+    // 상담 문의: 현재 상담 폼이 점검 중이라 비어 있음 (추후 DB 연동 예정)
     const savedC = localStorage.getItem('moapic_consultations');
     if (savedC) {
       setConsultationList(JSON.parse(savedC));
@@ -142,18 +146,23 @@ export default function AdminPanel({
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '202606Djr$ek') {
-      setIsAuthenticated(true);
-      setErrorMsg('');
-      loadData();
-    } else {
-      setErrorMsg('비밀번호가 일치하지 않습니다.');
+    setIsLoggingIn(true);
+    setErrorMsg('');
+    const { error } = await adminSignIn(email.trim(), password);
+    setIsLoggingIn(false);
+    if (error) {
+      setErrorMsg('이메일 또는 비밀번호가 올바르지 않습니다.');
+      return;
     }
+    setIsAuthenticated(true);
+    setPassword('');
+    loadData();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await adminSignOut();
     setIsAuthenticated(false);
     setPassword('');
   };
@@ -187,7 +196,7 @@ export default function AdminPanel({
     setIsFormModalOpen(true);
   };
 
-  const handleSavePortfolio = (e: React.FormEvent) => {
+  const handleSavePortfolio = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pTitle.trim() || !pClientName.trim() || !pDescription.trim()) {
       alert('필수 입력 항목을 채워주세요.');
@@ -249,7 +258,13 @@ export default function AdminPanel({
     }
 
     setPortfolios(updatedList);
-    localStorage.setItem('moapic_portfolios', JSON.stringify(updatedList));
+    try {
+      await replaceAllPortfolios(updatedList);
+    } catch (err) {
+      console.error(err);
+      alert('저장 중 오류가 발생했습니다. 로그인이 유지되고 있는지 확인 후 다시 시도해 주세요.');
+      return;
+    }
     setIsFormModalOpen(false);
     onPortfolioChange();
   };
@@ -262,10 +277,15 @@ export default function AdminPanel({
       confirmText: '삭제',
       cancelText: '취소',
       isDanger: true,
-      onConfirm: () => {
+      onConfirm: async () => {
         const updatedList = portfolios.filter((item) => item.id !== id);
         setPortfolios(updatedList);
-        localStorage.setItem('moapic_portfolios', JSON.stringify(updatedList));
+        try {
+          await replaceAllPortfolios(updatedList);
+        } catch (err) {
+          console.error(err);
+          alert('삭제 중 오류가 발생했습니다.');
+        }
         onPortfolioChange();
         setConfirmModal(null);
       }
@@ -280,9 +300,14 @@ export default function AdminPanel({
       confirmText: '초기화',
       cancelText: '취소',
       isDanger: true,
-      onConfirm: () => {
+      onConfirm: async () => {
         setPortfolios(DEFAULT_PORTFOLIOS);
-        localStorage.setItem('moapic_portfolios', JSON.stringify(DEFAULT_PORTFOLIOS));
+        try {
+          await replaceAllPortfolios(DEFAULT_PORTFOLIOS);
+        } catch (err) {
+          console.error(err);
+          alert('초기화 중 오류가 발생했습니다.');
+        }
         onPortfolioChange();
         setConfirmModal(null);
       }
@@ -357,10 +382,20 @@ export default function AdminPanel({
 
             <h3 className="text-xl font-bold mb-2">관리자 보안 인증</h3>
             <p className="text-xs text-neutral-400 mb-6 leading-relaxed">
-              모아픽의 포트폴리오 관리 및 접수된 견적 문의 DB에 권한 액세스하기 위해 비밀번호를 입력해 주세요.
+              모아픽의 포트폴리오 관리 및 접수된 견적 문의 DB에 권한 액세스하기 위해 관리자 이메일과 비밀번호를 입력해 주세요.
             </p>
 
             <form onSubmit={handleLogin} className="w-full space-y-4">
+              <div className="relative">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="관리자 이메일 입력"
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-center text-white placeholder-neutral-700 focus:outline-hidden focus:border-[#4B89FF] transition"
+                  autoFocus
+                />
+              </div>
               <div className="relative">
                 <input
                   type="password"
@@ -368,7 +403,6 @@ export default function AdminPanel({
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="관리자 패스워드 입력"
                   className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3 text-center text-white placeholder-neutral-700 tracking-widest focus:outline-hidden focus:border-[#4B89FF] transition"
-                  autoFocus
                 />
               </div>
 
@@ -378,9 +412,10 @@ export default function AdminPanel({
 
               <button
                 type="submit"
-                className="w-full bg-[#4B89FF] hover:bg-[#3b75e0] text-black py-3 rounded-xl text-sm font-black transition shadow-[0_0_15px_rgba(75,137,255,0.3)] cursor-pointer"
+                disabled={isLoggingIn}
+                className="w-full bg-[#4B89FF] hover:bg-[#3b75e0] text-black py-3 rounded-xl text-sm font-black transition shadow-[0_0_15px_rgba(75,137,255,0.3)] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                인증 완료 및 대시보드 진입
+                {isLoggingIn ? '인증 중...' : '인증 완료 및 대시보드 진입'}
               </button>
             </form>
           </div>
