@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, ArrowDown, HelpCircle, Layers, MessageSquare, Play, Check } from 'lucide-react';
 import { PortfolioItem } from './types';
-import { DEFAULT_PORTFOLIOS } from './data/defaultPortfolios';
 import { getYouTubeThumbnailUrl } from './utils/youtube';
+import { fetchPortfolios, fetchSettings, saveSetting } from './lib/content';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import TrustSection from './components/TrustSection';
@@ -26,72 +26,42 @@ export default function App() {
   const [videos, setVideos] = useState<string>('531개');
   const [views, setViews] = useState<string>('84,230,000+');
 
-  // Load portfolios, custom logo, and statistics from localStorage on mount (seed if empty)
+  // 포트폴리오를 중앙 DB에서 새로고침 (관리자가 수정 후에도 호출됨)
+  const refreshPortfolios = async () => {
+    const items = await fetchPortfolios();
+    setPortfolios(items);
+  };
+
+  // 첫 진입 시 포트폴리오 + 설정(로고/통계)을 Supabase 중앙 DB에서 불러옵니다.
   useEffect(() => {
-    loadLocalPortfolios();
-    const savedLogo = localStorage.getItem('moapic_custom_logo');
-    if (savedLogo) {
-      setCustomLogo(savedLogo);
-    }
-    const savedMini = localStorage.getItem('moapic_custom_mini_logo');
-    if (savedMini) {
-      setCustomMiniLogo(savedMini);
-    }
-    const savedSubs = localStorage.getItem('moapic_stat_subscribers');
-    if (savedSubs) {
-      setSubscribers(savedSubs);
-    }
-    const savedVideos = localStorage.getItem('moapic_stat_videos');
-    if (savedVideos) {
-      setVideos(savedVideos);
-    }
-    const savedViews = localStorage.getItem('moapic_stat_views');
-    if (savedViews) {
-      setViews(savedViews);
-    }
+    refreshPortfolios();
+
+    fetchSettings().then((settings) => {
+      if (settings.custom_logo) setCustomLogo(settings.custom_logo);
+      if (settings.custom_mini_logo) setCustomMiniLogo(settings.custom_mini_logo);
+      if (settings.stat_subscribers) setSubscribers(settings.stat_subscribers);
+      if (settings.stat_videos) setVideos(settings.stat_videos);
+      if (settings.stat_views) setViews(settings.stat_views);
+    });
   }, []);
 
   const handleStatsChange = (newStats: { subscribers: string; videos: string; views: string }) => {
     setSubscribers(newStats.subscribers);
     setVideos(newStats.videos);
     setViews(newStats.views);
-    localStorage.setItem('moapic_stat_subscribers', newStats.subscribers);
-    localStorage.setItem('moapic_stat_videos', newStats.videos);
-    localStorage.setItem('moapic_stat_views', newStats.views);
-  };
-
-  const loadLocalPortfolios = () => {
-    const saved = localStorage.getItem('moapic_portfolios');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.length < DEFAULT_PORTFOLIOS.length) {
-        setPortfolios(DEFAULT_PORTFOLIOS);
-        localStorage.setItem('moapic_portfolios', JSON.stringify(DEFAULT_PORTFOLIOS));
-      } else {
-        setPortfolios(parsed);
-      }
-    } else {
-      setPortfolios(DEFAULT_PORTFOLIOS);
-      localStorage.setItem('moapic_portfolios', JSON.stringify(DEFAULT_PORTFOLIOS));
-    }
+    saveSetting('stat_subscribers', newStats.subscribers);
+    saveSetting('stat_videos', newStats.videos);
+    saveSetting('stat_views', newStats.views);
   };
 
   const handleLogoChange = (newLogo: string | null) => {
     setCustomLogo(newLogo);
-    if (newLogo) {
-      localStorage.setItem('moapic_custom_logo', newLogo);
-    } else {
-      localStorage.removeItem('moapic_custom_logo');
-    }
+    saveSetting('custom_logo', newLogo);
   };
 
   const handleMiniLogoChange = (newMiniLogo: string | null) => {
     setCustomMiniLogo(newMiniLogo);
-    if (newMiniLogo) {
-      localStorage.setItem('moapic_custom_mini_logo', newMiniLogo);
-    } else {
-      localStorage.removeItem('moapic_custom_mini_logo');
-    }
+    saveSetting('custom_mini_logo', newMiniLogo);
   };
 
   const handleNavigate = (view: 'home' | 'portfolio' | 'service' | 'consulting', targetElementId?: string) => {
@@ -501,7 +471,7 @@ export default function App() {
       <AdminPanel 
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
-        onPortfolioChange={loadLocalPortfolios} // Refresh homepage portfolio grid dynamically
+        onPortfolioChange={refreshPortfolios} // Refresh homepage portfolio grid dynamically
         customLogo={customLogo}
         onLogoChange={handleLogoChange}
         customMiniLogo={customMiniLogo}
