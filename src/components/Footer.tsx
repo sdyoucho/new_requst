@@ -103,7 +103,7 @@ export default function Footer({ onOpenAdmin, onScrollToConsulting, onScrollToPo
             </span>
             <button
               onClick={onOpenAdmin}
-              className="text-[#4B89FF]/80 hover:text-[#4B89FF] font-bold transition flex items-center space-x-1 cursor-pointer"
+              className="text-neutral-500 hover:text-neutral-300 font-medium transition flex items-center space-x-1 cursor-pointer"
               title="관리자 모드 실행"
             >
               <span>[관리자 콘솔]</span>
