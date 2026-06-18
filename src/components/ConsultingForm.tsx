@@ -6,22 +6,13 @@ interface ConsultingFormProps {
 }
 
 export default function ConsultingForm({ onSuccess }: ConsultingFormProps) {
-  const handleGoHome = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    const homeSection = document.getElementById('home') || document.getElementById('hero') || document.querySelector('section');
-    if (homeSection) {
-      homeSection.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      window.location.href = '/';
-    }
-  };
-
   return (
     <div className="w-full max-w-2xl mx-auto rounded-3xl bg-neutral-950/80 border border-neutral-900 shadow-2xl shadow-black/50 p-8 md:p-12 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/[0.03] rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/[0.02] rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-8 py-8">
+
         {/* 아이콘 */}
         <div className="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
           <Lock size={32} className="text-amber-400" />
@@ -50,12 +41,13 @@ export default function ConsultingForm({ onSuccess }: ConsultingFormProps) {
         {/* 홈으로 돌아가기 버튼 */}
         <button
           type="button"
-          onClick={handleGoHome}
+          onClick={onSuccess}
           className="inline-flex items-center space-x-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 hover:border-neutral-600 text-white rounded-xl px-6 py-3 text-sm font-semibold transition-all cursor-pointer"
         >
           <ArrowLeft size={16} />
           <span>홈으로 돌아가기</span>
         </button>
+
       </div>
     </div>
   );
