@@ -149,29 +149,18 @@ export default function ServiceLandingPage({ onScrollToConsulting, onScrollToPor
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {whyMoapicList.map((item, idx) => {
-              const isFeatured = idx === 1; // "채널 맞춤 전략" 카드를 미세하게 강조하여 시각 균형감 부여
               return (
-                <div 
+                <div
                   key={idx}
-                  className={`border rounded-2xl p-8 md:p-9 hover:-translate-y-1 transition duration-400 relative group overflow-hidden flex flex-col justify-between ${
-                    isFeatured 
-                      ? 'border-[#4B89FF]/30 bg-neutral-950 shadow-md shadow-[#4B89FF]/5 hover:border-[#4B89FF]/50 hover:shadow-lg hover:shadow-[#4B89FF]/10 text-white' 
-                      : 'border-neutral-900 bg-neutral-950/50 hover:bg-neutral-950 hover:border-[#4B89FF]/30 hover:shadow-xs text-white'
-                  }`}
+                  className="border rounded-2xl p-8 md:p-9 hover:-translate-y-1 transition duration-400 relative group overflow-hidden flex flex-col justify-between border-neutral-900 bg-neutral-950/50 hover:bg-neutral-950 hover:border-[#4B89FF]/30 hover:shadow-xs text-white"
                 >
                   {/* Subtle hotspot glow */}
-                  <div className={`absolute -top-10 -left-10 w-36 h-36 rounded-full blur-3xl pointer-events-none transition-all duration-500 ${
-                    isFeatured ? 'bg-[#4B89FF]/4 group-hover:bg-[#4B89FF]/6' : 'bg-[#4B89FF]/1 group-hover:bg-[#4B89FF]/2'
-                  }`} />
-                  
+                  <div className="absolute -top-10 -left-10 w-36 h-36 rounded-full blur-3xl pointer-events-none transition-all duration-500 bg-[#4B89FF]/1 group-hover:bg-[#4B89FF]/2" />
+
                   <div className="relative z-10 flex flex-col justify-between h-full space-y-7">
                     <div className="space-y-5">
                       {/* Standard Big Icon Container for Premium Presence */}
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                        isFeatured 
-                          ? 'bg-[#4B89FF]/10 border border-[#4B89FF]/25 text-[#4B89FF]' 
-                          : 'bg-[#4B89FF]/5 border border-[#4B89FF]/15 text-[#4B89FF]/95 group-hover:text-[#4B89FF] group-hover:bg-[#4B89FF]/10'
-                      }`}>
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 bg-[#4B89FF]/5 border border-[#4B89FF]/15 text-[#4B89FF]/95 group-hover:text-[#4B89FF] group-hover:bg-[#4B89FF]/10">
                         {item.icon}
                       </div>
 

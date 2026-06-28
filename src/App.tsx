@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Sparkles, ArrowDown, HelpCircle, Layers, MessageSquare, Play, Check } from 'lucide-react';
 import { PortfolioItem } from './types';
 import { getYouTubeThumbnailUrl } from './utils/youtube';
@@ -81,8 +81,18 @@ export default function App() {
     }
   };
 
-  const featuredPortfolios = portfolios.filter(item => item.isFeatured === true);
-  const marqueeItems = featuredPortfolios.length > 0 ? featuredPortfolios : portfolios;
+  // 관리자가 지정한 순서 그대로가 아니라, 포트폴리오가 로드(새로고침)될 때마다 랜덤한 순서로 섞어서 보여줍니다.
+  const marqueeItems = useMemo(() => {
+    const featured = portfolios.filter(item => item.isFeatured === true);
+    const source = featured.length > 0 ? featured : portfolios;
+    const shuffled = [...source];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [portfolios]);
+
   const marqueeDuration = marqueeItems.length > 0 ? Math.max(15, marqueeItems.length * 7.5) : 45;
 
   return (
@@ -408,9 +418,7 @@ export default function App() {
                 </div>
 
                 {/* Render form structure */}
-                <ConsultingForm onSuccess={() => {
-                  // Can hook extra feedback if requested
-                }} />
+                <ConsultingForm onSuccess={() => handleNavigate('home')} />
 
               </div>
             </section>
